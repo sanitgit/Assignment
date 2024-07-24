@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Variables
-DB_NAME="your_database_name"
-DB_USER="your_database_user"
-DB_HOST="your_database_host"
-BACKUP_DIR="/path/to/backup/directory"
+DB_NAME="my_database"    #database_name
+DB_USER="db_admin"       #database_user
+DB_HOST="localhost"      #database_host
+BACKUP_DIR="/data/backups"  # path to backup directory
 BACKUP_FILE=$1
 
 # Check if backup file is provided

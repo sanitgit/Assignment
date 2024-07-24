@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # Variables
-DB_NAME="your_database_name"
-DB_USER="your_database_user"
-DB_HOST="your_database_host"
-BACKUP_DIR="/path/to/backup/directory"
-DATE=$(date +"%Y%m%d%H%M%S")
+DB_NAME="my_database"    #database_name
+DB_USER="db_admin"       #database_user
+DB_HOST="localhost"      #database_host
+BACKUP_DIR="/data/backups"  # path to backup directory
+DATE=$(date +"%Y%m%d%H%M%S")  #date command to generate a timestamp for the backup filename
 
 # Create backup
 pg_dump -U $DB_USER -h $DB_HOST $DB_NAME | gzip > $BACKUP_DIR/db_backup_$DATE.sql.gz
