@@ -1,0 +1,62 @@
+name: STAGE ##change based on environment eg: STG or PRD
+on:
+  push: ## for auto build when code triggered in below branch
+    branches: 
+      - stage
+  workflow_dispatch:
+jobs:
+  build:
+    name: Frontend-install
+    runs-on: ubuntu-20.04  # already has preinstalled Node 14.17.0
+    strategy:
+      matrix:
+        node-version: [16]
+    env: ## ----> Change below values <---- ##
+      NODE_OPTIONS: --max_old_space_size=8192
+      BUILD_ENV: STG
+      DISTRIBUTION_ID_FE: E1S00000000000
+      NODE_ENV: staging
+      BUCKET_NAME: stage-frontend
+      ## ----> modify end section <---- ## 
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: npm install
+        run: |
+          npm install
+
+      - name: Build
+        run: |
+          npm --production=false install && npm rebuild node-sass
+          npm run build
+
+      - name: Configure AWS cli
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+
+      - name: Deploy Portal
+        uses: jakejarvis/s3-sync-action@v0.5.1
+        with:
+          args: --acl public-read --delete
+        env:
+          AWS_S3_BUCKET: ${{ env.BUCKET_NAME }}
+          NEXT_PUBLIC_API_URL: ${{ env.NEXT_PUBLIC_API_URL }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+          SOURCE_DIR: "./out"
+
+      - name: Invalidate CF
+        run: |
+          aws cloudfront create-invalidation --distribution-id ${{ env.DISTRIBUTION_ID_FE }} --paths '/*'
+      
+      - name: Debug
+        uses: hmarr/debug-action@v2
